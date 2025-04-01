@@ -1,7 +1,6 @@
 class DataLogger {
     //variables for writing EEG data out to a file
     private DataWriterODF fileWriterODF;
-    private DataWriterAuxODF fileWriterAuxODF;
     private DataWriterBDF fileWriterBDF;
     public DataWriterBF fileWriterBF; //Add the ability to simulataneously save to BrainFlow CSV, independent of BDF or ODF
     private String sessionName = "N/A";
@@ -43,8 +42,6 @@ class DataLogger {
         switch (outputDataSource) {
             case OUTPUT_SOURCE_ODF:
                 fileWriterODF.append(newData);
-                if (currentBoard instanceof AuxDataBoard)
-                    fileWriterAuxODF.append(((AuxDataBoard)currentBoard).getAuxFrameData());
                 break;
             case OUTPUT_SOURCE_BDF:
                 fileWriterBDF.writeRawData_dataPacket(newData);
@@ -130,8 +127,7 @@ class DataLogger {
         //open the new file
         fileWriterBDF = new DataWriterBDF(_fileName);
 
-        output_fname = fileWriterBDF.fname;
-        println("OpenBCI_GUI: openNewLogFile: opened BDF output file: " + output_fname); //Print filename of new BDF file to console
+        println("OpenBCI_GUI: openNewLogFile: opened BDF output file: " + fileWriterBDF.getFileName());
     }
 
     /**
@@ -146,14 +142,8 @@ class DataLogger {
         }
         //open the new file
         fileWriterODF = new DataWriterODF(sessionName, _fileName);
-        if (currentBoard instanceof AuxDataBoard) {
-            if (fileWriterAuxODF != null)
-                fileWriterAuxODF.closeFile();
-            fileWriterAuxODF = new DataWriterAuxODF(sessionName, _fileName);
-        }
 
-        output_fname = fileWriterODF.fname;
-        println("OpenBCI_GUI: openNewLogFile: opened ODF output file: " + output_fname); //Print filename of new ODF file to console
+        println("OpenBCI_GUI: openNewLogFile: opened ODF output file: " + fileWriterODF.getFileName());
     }
 
     private void closeLogFile() {
@@ -172,10 +162,6 @@ class DataLogger {
         settings.setLogFileIsOpen(false);
     }
 
-    /**
-    * @description Close an open BDF file. This will also update the number of data
-    *  records.
-    */
     private void closeLogFileBDF() {
         if (fileWriterBDF != null) {
             fileWriterBDF.closeFile();
@@ -183,18 +169,11 @@ class DataLogger {
         fileWriterBDF = null;
     }
 
-    /**
-    * @description Close an open ODF file.
-    */
     private void closeLogFileODF() {
         if (fileWriterODF != null) {
             fileWriterODF.closeFile();
         }
         fileWriterODF = null;
-        if (fileWriterAuxODF != null) {
-            fileWriterAuxODF.closeFile();
-        }
-        fileWriterAuxODF = null;
     }
 
     public int getDataLoggerOutputFormat() {
